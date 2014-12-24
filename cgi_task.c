@@ -19,6 +19,26 @@ void* cgi_task(void* arg)
 	//交换数据
 	if(NULL!=cm)
 	{
+
+		//设备判断
+		char* type=FCGX_GetParam("HTTP_USER_AGENT",request->envp);
+		if(0==strcmp(type,"Android"))
+		{
+			cm->dev_type=ANDROID;
+		}
+		else if(0==strcmp(type,"iOS"))
+		{
+			cm->dev_type=IOS;
+		}
+		else if(0==strcmp(type,"Windows Phone"))
+		{
+			cm->dev_type=WP;
+		}
+		else
+		{
+			cm->dev_type=IGNORE;
+		}
+
 		if(data_exchange(cm,request->out)<0)
 		{
 			FCGX_FPrintF(request->out, "ERROR!");
@@ -55,12 +75,14 @@ int data_exchange(CM cm,FCGX_Stream* out)
 
 	if(connect(fd, (struct sockaddr *)&srv_addr, sizeof(struct sockaddr_un))<0)
 	{
+		shutdown(fd, SHUT_RDWR);
 		close(fd);
 		return -1;
 	}
 
 	if((ret=send(fd,(char*)cm,cm->packet_len,MSG_NOSIGNAL))<0)
 	{
+		shutdown(fd, SHUT_RDWR);
 		close(fd);
 		return -1;
 	}
@@ -71,6 +93,7 @@ int data_exchange(CM cm,FCGX_Stream* out)
 	timeout.tv_usec=0;
 	if(setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,(char *)&timeout.tv_sec,sizeof(struct timeval))<0)
 	{
+		shutdown(fd, SHUT_RDWR);
 		close(fd);
 		return -1;
 	}
@@ -84,7 +107,8 @@ int data_exchange(CM cm,FCGX_Stream* out)
 		return -1;
 	}
 	if(size<=0)
-	{
+	{		
+		shutdown(fd, SHUT_RDWR);
 		close(fd);
 		return -1;
 	}
@@ -92,6 +116,7 @@ int data_exchange(CM cm,FCGX_Stream* out)
 	char* ndata=(char*)malloc(leftsize);
 	if(NULL==ndata)
 	{
+		shutdown(fd, SHUT_RDWR);
 		close(fd);
 		return -1;
 	}
@@ -105,6 +130,7 @@ int data_exchange(CM cm,FCGX_Stream* out)
 		{
 			free(ndata);
 			ndata=NULL;
+			shutdown(fd, SHUT_RDWR);
 			close(fd);
 			return -1;
 		}else if(ret==0)
@@ -121,6 +147,7 @@ int data_exchange(CM cm,FCGX_Stream* out)
 
 	free(ndata);
 	ndata=NULL;
+	shutdown(fd, SHUT_RDWR);
 	close(fd);
 	return 0;
 }
@@ -135,7 +162,7 @@ CM post_request(FCGX_Request* arg)
 		return NULL;
 	}
 
-	char* data = (char*)malloc(plen);
+	char* data = (char*)malloc(plen+1);
 	if(NULL==data)
 	{
 		return NULL;
@@ -163,7 +190,7 @@ CM post_request(FCGX_Request* arg)
 		return NULL;
 	}
 
-	memcpy(cm->context,data+(plen-len),len);
+	memcpy(cm->context,data+(plen-len+1),len-1);
 	free(data);
 
 	return cm;
