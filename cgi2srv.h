@@ -17,8 +17,8 @@ typedef struct cgi_msg
 {
 	uint32_t packet_len;
 	uint32_t type;
-	char sender[32];
-	char recver[32];
+	char sender[48];
+	char recver[48];
 	uint32_t dev_type;
 	uint32_t len;
 	char context[0];
