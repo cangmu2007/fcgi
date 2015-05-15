@@ -44,8 +44,8 @@ typedef struct
 
 int pool_add_worker (void *(*process) (void *arg), void *arg);  
 void *thread_routine (void *arg); 
-void pool_init (int max_thread_num);
-int pool_destroy ();
+int pool_init (int max_thread_num);
+int pool_destroy (void);
 
 static CThread_pool *pool = NULL;	//共用的资源
 

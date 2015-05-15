@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define UNIX_PATH "/home/mu/fcgi_test/cgi_link"	//域套接字连接符路径(与服务端的同名宏路径一致,尽量创建在CGI目录下)
+#define UNIX_PATH "/home/1/fcgi/cgi_link"	//域套接字连接符路径(与服务端的同名宏路径一致,尽量创建在CGI目录下)
 
 enum DEV_TYPE
 {

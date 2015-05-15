@@ -1,8 +1,12 @@
 #include "CThread.h"
 
-void pool_init(int max_thread_num)  
+int pool_init(int max_thread_num)  
 {  
-    pool = (CThread_pool *)malloc(sizeof (CThread_pool));  
+    pool = (CThread_pool *)malloc(sizeof (CThread_pool));
+	if(NULL==pool)
+	{
+		return -1;
+	}
   
     pthread_mutex_init(&(pool->queue_lock), NULL);  
     pthread_cond_init(&(pool->queue_ready), NULL);  
@@ -14,19 +18,31 @@ void pool_init(int max_thread_num)
   
     pool->shutdown = 0;  
   
-    pool->threadid = (pthread_t *)malloc(max_thread_num * sizeof(pthread_t));  
+    pool->threadid = (pthread_t *)malloc(max_thread_num * sizeof(pthread_t));
+	if(NULL==pool->threadid)
+	{
+		pthread_mutex_destroy(&(pool->queue_lock));  
+		pthread_cond_destroy(&(pool->queue_ready));  
+		free(pool);
+		return -1;
+	}
     int i = 0;  
     for (i = 0; i < max_thread_num; i++)  
     {   
         pthread_create(&(pool->threadid[i]), NULL, thread_routine,NULL);  
-    }  
+    } 
+	return 0;
 }  
   
 /*向线程池中加入任务*/  
 int pool_add_worker(void *(*process)(void *arg), void *arg)  
 {  
     /*构造一个新任务*/  
-    CThread_worker *newworker = (CThread_worker *)malloc(sizeof (CThread_worker));  
+    CThread_worker *newworker = (CThread_worker *)malloc(sizeof (CThread_worker)); 
+	if(NULL==newworker)
+	{
+		return -1;
+	}
     newworker->process = process;  
     newworker->arg = arg;  
     newworker->next = NULL;/*别忘置空*/  
@@ -59,7 +75,7 @@ int pool_add_worker(void *(*process)(void *arg), void *arg)
   
 /*销毁线程池，等待队列中的任务不会再被执行，但是正在运行的线程会一直 
 把任务运行完后再退出*/  
-int pool_destroy()  
+int pool_destroy(void)  
 {  
     if(pool->shutdown)  
         return -1;/*防止两次调用*/  
