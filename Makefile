@@ -13,8 +13,8 @@ src=	cgi_task.c \
 	main.c
 
 all:
-	$(CC) $(CFLAGS) $(OUT) cgi_task.c CThread.c main.c $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OUT) $(src) $(LDFLAGS)
 debug:
-	$(CC) $(DEBUG) $(OUT) cgi_task.c CThread.c main.c $(LDFLAGS)
+	$(CC) $(DEBUG) $(OUT) $(src) $(LDFLAGS)
 clean:
 	rm $(OUT)
